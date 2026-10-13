@@ -7,18 +7,18 @@ import { DownloadButton } from "@/components/download-button";
 import { EditorMockup } from "@/components/editor-mockup";
 import { ButtonLink } from "@/components/ui/button";
 import { GithubIcon } from "@/components/icons";
-import { RELEASE } from "@/lib/downloads";
+import { RELEASE, SOURCE_REPO } from "@/lib/downloads";
 
 const PROMISES = [
   "Beat-synced AMV & gaming edits",
-  "Local REST + MCP API for agents",
+  "Local REST API for agents",
   "Zero subscription watermarks",
 ];
 
 const STATS = [
   { value: "MIT", label: "License, forever" },
   { value: "0", label: "Watermarks, ever" },
-  { value: "4721", label: "Local API port" },
+  { value: "4815", label: "Local API port" },
   { value: "60", label: "FPS GPU preview" },
 ];
 
@@ -80,7 +80,7 @@ export function Hero() {
             track, then cuts beat-accurate{" "}
             <span className="text-bright">AMV and gaming edits</span> automatically.
             Drive the whole editor from your own scripts or AI agents over a{" "}
-            <span className="text-bright">local API and MCP server</span> — with{" "}
+            <span className="text-bright">local REST API</span> — with{" "}
             <span className="text-bright">zero subscription watermarks</span>, ever.
           </motion.p>
 
@@ -137,14 +137,14 @@ export function Hero() {
           ))}
           <div className="flex items-center gap-2 px-2">
             <a
-              href="https://github.com/kinetix-studio/kinetix"
+              href={SOURCE_REPO}
               target="_blank"
               rel="noreferrer noopener"
               className="inline-flex items-center gap-1.5 text-[12.5px] text-mute transition-colors hover:text-bright"
             >
               <GithubIcon className="size-4" />
               <Star className="size-3.5 fill-volt-bright text-volt-bright" />
-              12.4k stars
+              Star on GitHub
             </a>
             <Link
               href="/#demo"

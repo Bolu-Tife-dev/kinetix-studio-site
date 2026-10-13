@@ -58,7 +58,7 @@ export function DocsToc({ items }: { items: TocItem[] }) {
       <div className="mt-8 rounded-xl border border-hair bg-white/[0.02] p-4">
         <p className="eyebrow text-flux-bright">Base URL</p>
         <code className="mt-2.5 block break-all font-mono text-[12px] text-soft">
-          http://127.0.0.1:4721
+          http://127.0.0.1:4815
         </code>
         <p className="mt-3 text-[12.5px] leading-relaxed text-mute">
           The API only binds to loopback. Remote agents must tunnel or run on the same

@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X, Terminal, Download, BookOpen } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { KinetixMark, GithubIcon } from "@/components/icons";
+import { RELEASE, SOURCE_REPO } from "@/lib/downloads";
 
 const NAV = [
   { href: "/", label: "Overview" },
@@ -64,7 +65,7 @@ export function SiteHeader() {
                 Kinetix Studio
               </span>
               <span className="mt-1 hidden font-mono text-[9.5px] uppercase tracking-[0.24em] text-mute sm:block">
-                Open Source · v2.4.1
+                Open Source · v{RELEASE.version}
               </span>
             </span>
           </Link>
@@ -93,7 +94,7 @@ export function SiteHeader() {
 
           <div className="flex items-center gap-2">
             <a
-              href="https://github.com/kinetix-studio/kinetix"
+                  href={SOURCE_REPO}
               target="_blank"
               rel="noreferrer noopener"
               aria-label="Kinetix Studio on GitHub"
@@ -165,7 +166,7 @@ export function SiteHeader() {
                   Download
                 </ButtonLink>
                 <a
-                  href="https://github.com/kinetix-studio/kinetix"
+              href={SOURCE_REPO}
                   target="_blank"
                   rel="noreferrer noopener"
                   className="flex h-11 w-11 items-center justify-center rounded-xl border border-hair text-soft"

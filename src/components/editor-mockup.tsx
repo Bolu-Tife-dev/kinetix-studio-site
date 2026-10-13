@@ -244,11 +244,11 @@ export function EditorMockup() {
       <div className="pointer-events-none absolute -bottom-6 -left-4 hidden w-64 rounded-2xl border border-hair bg-surface/95 p-3 shadow-[0_30px_60px_-25px_rgba(0,0,0,0.9)] backdrop-blur-xl sm:block lg:-left-10">
         <div className="flex items-center gap-2">
           <span className="size-1.5 animate-beat rounded-full bg-flux shadow-[0_0_10px_2px_rgba(34,211,238,0.85)]" />
-          <span className="eyebrow text-mute">Local API · :4721</span>
+          <span className="eyebrow text-mute">Local API · :4815</span>
         </div>
         <pre className="mt-2 overflow-hidden font-mono text-[10px] leading-relaxed text-soft">
           <code>
-            {`> POST /v1/render/export
+            {`> POST /api/v1/render
 { "preset": "amv_beat_hammer",
   "aspect": "9:16" }
 < 202 accepted · job_8fa21`}

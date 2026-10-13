@@ -2,7 +2,7 @@ import { AudioWaveform, Bot, Scissors, Upload } from "lucide-react";
 
 const MARQUEE = [
   "Beat-synced AMV cuts",
-  "MCP-compatible agent bridge",
+  "API-key agent bridge",
   "Subject-aware auto-reframe",
   "Chromatic aberration FX",
   "GPU-accelerated preview",
@@ -40,7 +40,7 @@ const STEPS = [
     kicker: "Automate",
     title: "Hand the timeline to your agent",
     body:
-      "Every operation is a REST call or MCP tool. Have your agent tweak shots, swap presets, and queue a watermark-free render.",
+      "Every operation is a REST call on the local bridge. Have your agent tweak shots, swap presets, and queue a watermark-free render.",
   },
 ];
 

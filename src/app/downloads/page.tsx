@@ -10,13 +10,13 @@ import {
 } from "lucide-react";
 import { DownloadCenter } from "@/components/download-center";
 import { ButtonLink } from "@/components/ui/button";
-import { RELEASE } from "@/lib/downloads";
+import { RELEASE, SOURCE_REPO } from "@/lib/downloads";
 import { GithubIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Download Center",
   description:
-    "Download Kinetix Studio for Windows, macOS, and Linux. Signed builds, SHA-256 checksums, no watermarks.",
+    "Download Kinetix Studio for Windows and Linux. SHA-256 checksums, no watermarks. macOS build coming soon.",
 };
 
 const HIGHLIGHTS = [
@@ -33,39 +33,23 @@ const HIGHLIGHTS = [
   {
     icon: GitBranch,
     title: "Built from source",
-    body: "Each release is reproducible from the public tag. Check the workflow logs yourself.",
+    body: "Every release tag is public on GitHub — clone it and rebuild the exact binaries yourself.",
   },
   {
     icon: CircleCheck,
-    title: "Signed artifacts",
-    body: "Windows Authenticode, Apple notarization, and detached GPG signatures for Linux.",
+    title: "SHA-256 checksums",
+    body: "Each artifact ships with a published digest and a SHA256SUMS.txt manifest on the release page.",
   },
 ];
 
 const RELEASES = [
   {
-    version: "2.4.1",
-    codename: "Spectra",
+    version: "1.0.0",
+    codename: "Genesis",
     date: RELEASE.releasedAt,
     channel: "stable",
     summary:
-      "MCP stdio transport, subject-aware auto-reframe, 12 new FX presets, and a 3.1× faster beat analyzer.",
-  },
-  {
-    version: "2.3.6",
-    codename: "Prism",
-    date: "2026-08-14",
-    channel: "stable",
-    summary:
-      "Signed webhooks, timeline PATCH endpoint, and macOS Apple Silicon performance rewrite.",
-  },
-  {
-    version: "2.3.0",
-    codename: "Ember",
-    date: "2026-07-02",
-    channel: "stable",
-    summary:
-      "Initial public Agent Bridge, GPU-accelerated preview, and the dark aesthetic FX engine.",
+      "First public release: multi-track timeline, beat-synced auto-edit API, hardware-accelerated MP4 renders, and the embedded agent panel.",
   },
 ];
 
@@ -91,8 +75,9 @@ export default function DownloadsPage() {
                 <span className="text-neon">v{RELEASE.version}</span>
               </h1>
               <p className="mt-5 text-pretty text-[16px] leading-relaxed text-soft">
-                Signed builds for every platform, each with a published SHA-256 digest.
-                Pick your OS — the recommended artifact is already selected for you.
+                Windows and Linux builds, each with a published SHA-256 digest — macOS is
+                on the way. Pick your OS; the recommended artifact is already selected
+                for you.
               </p>
             </div>
 
@@ -143,12 +128,12 @@ export default function DownloadsPage() {
             </h2>
           </div>
           <Link
-            href="https://github.com/kinetix-studio/kinetix/releases"
+            href={`${SOURCE_REPO}/releases`}
             target="_blank"
             rel="noreferrer noopener"
             className="hidden items-center gap-2 text-[13.5px] text-soft transition-colors hover:text-bright sm:flex"
           >
-            View all tags
+            View all releases
             <ArrowRight className="size-4" />
           </Link>
         </div>
@@ -201,12 +186,12 @@ export default function DownloadsPage() {
             </h3>
             <p className="mt-1 text-[14px] text-soft">
               The entire editor is MIT licensed. Clone the tag and run{" "}
-              <code className="font-mono text-flux-bright">pnpm build</code>.
+              <code className="font-mono text-flux-bright">npm run build</code>.
             </p>
           </div>
           <div className="flex gap-3">
             <ButtonLink
-              href="https://github.com/kinetix-studio/kinetix"
+              href={SOURCE_REPO}
               variant="outline"
               size="md"
               target="_blank"

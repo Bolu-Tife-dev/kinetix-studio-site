@@ -68,17 +68,17 @@ export function Features() {
                   Expose the entire editor to your agents.
                 </h3>
                 <p className="mt-3 text-[14.5px] leading-relaxed text-soft">
-                  A local HTTP server binds to <code className="font-mono text-flux-bright">127.0.0.1:4721</code> on
-                  launch, plus a first-class Model Context Protocol server. Point Claude,
-                  Cursor, or your own orchestrator at it and let agents cut, grade, and
+                  A local HTTP server binds to <code className="font-mono text-flux-bright">127.0.0.1:4815</code> on
+                  launch, guarded by scoped API keys you mint in Settings. Point Claude,
+                  Cursor, or your own orchestrator at it and let agents cut, analyse, and
                   render without a human in the loop.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-2">
                   {[
-                    { icon: Server, label: "REST /v1" },
-                    { icon: Webhook, label: "Webhooks" },
-                    { icon: Cpu, label: "MCP stdio" },
-                    { icon: Frame, label: "Typed TS SDK" },
+                    { icon: Server, label: "REST /api/v1" },
+                    { icon: Webhook, label: "API keys" },
+                    { icon: Cpu, label: "Job polling" },
+                    { icon: Frame, label: "Loopback only" },
                   ].map(({ icon: Icon, label }) => (
                     <span
                       key={label}
@@ -100,16 +100,17 @@ export function Features() {
                 </div>
                 <pre className="overflow-x-auto px-3 py-3 font-mono text-[11px] leading-[1.7] text-soft">
                   <code>
-                    {`$ kinetix agent authorize
-  scope: timeline.read timeline.write render
-  transport: mcp + rest
-  status: bound
+                    {`$ export KINETIX_KEY="kx_..."   # Settings → API
+$ curl -H "X-API-Key: $KINETIX_KEY" \\
+    http://127.0.0.1:4815/api/v1/health
+  → { "ok": true, "status": "up" }
 
-claude> cut this AMV to the drop
-  → POST /v1/analyze/bpm
+agent> cut this AMV to the drop
+  → POST /api/v1/audio/extract-and-analyze
   → 174.0 BPM · 42 transients
-  → POST /v1/timeline/autocut
+  → POST /api/v1/timeline/build-sequence
   → 41 cuts snapped to beat grid
+  → POST /api/v1/render · poll render/status
   ✓ rendered 00:42 · no watermark`}
                   </code>
                 </pre>

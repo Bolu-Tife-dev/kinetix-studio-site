@@ -14,19 +14,23 @@ export type Artifact = {
   sha256: string;
   recommended?: boolean;
   requires?: string;
+  comingSoon?: boolean;
 };
 
+export const SOURCE_REPO = "https://github.com/Bolu-Tife-dev/kinetix-studio";
+
 export const RELEASE = {
-  version: "2.4.1",
-  codename: "Spectra",
+  version: "1.0.0",
+  codename: "Genesis",
   channel: "stable",
-  releasedAt: "2026-09-28",
-  notesUrl: "https://github.com/kinetix-studio/kinetix/releases/tag/v2.4.1",
-  apiBase: "http://127.0.0.1:4721",
-  mcpEndpoint: "http://127.0.0.1:4721/mcp",
+  releasedAt: "2026-10-13",
+  notesUrl: `${SOURCE_REPO}/releases/tag/v1.0.0`,
+  apiBase: "http://127.0.0.1:4815",
 } as const;
 
-const CDN = `https://github.com/kinetix-studio/kinetix/releases/download/v${RELEASE.version}`;
+const CDN = `${SOURCE_REPO}/releases/download/v${RELEASE.version}`;
+
+export const SHA256SUMS_URL = `${CDN}/SHA256SUMS.txt`;
 
 export const ARTIFACTS: Artifact[] = [
   {
@@ -34,11 +38,12 @@ export const ARTIFACTS: Artifact[] = [
     os: "windows",
     arch: "x64",
     label: "Windows Installer",
-    detail: "Windows 10 / 11 · x64 · signed MSI + NSIS",
-    file: `Kinetix-Studio-${RELEASE.version}-windows-x64-setup.exe`,
+    detail: "Windows 10 / 11 · x64 · NSIS installer",
+    file: `Kinetix-Studio-Setup-${RELEASE.version}.exe`,
     format: "exe",
-    size: "184 MB",
-    sha256: "9f2c4b7e1ad38c05b6e94f21d7c8a30e5b19d4f7c6a2e8b30d5147a9ce2f6b8d",
+    size: "223 MB",
+    sha256:
+      "8ef4b2bef5fa56b5f5ffd9c941b525cbfb42cf6c5d7c49116e78f8e218b0925a",
     recommended: true,
   },
   {
@@ -47,44 +52,23 @@ export const ARTIFACTS: Artifact[] = [
     arch: "x64",
     label: "Windows Portable",
     detail: "No install · runs from any folder",
-    file: `Kinetix-Studio-${RELEASE.version}-windows-x64-portable.zip`,
-    format: "zip",
-    size: "191 MB",
-    sha256: "3c81f0a94d6b2e75c18d9037af5e26410c9b8d47e2a15f6039cb7d8e4a12f05b",
-  },
-  {
-    id: "mac-arm64",
-    os: "macos",
-    arch: "arm64",
-    label: "macOS · Apple Silicon",
-    detail: "M1 – M4 series · macOS 13 Ventura or newer",
-    file: `Kinetix-Studio-${RELEASE.version}-macos-arm64.dmg`,
-    format: "dmg",
-    size: "176 MB",
-    sha256: "b74e1c08a5d93f62e0187cb4d2f95a306e8c1d794b0a25e3f861dc970a4b5e2f",
-    recommended: true,
-  },
-  {
-    id: "mac-x64",
-    os: "macos",
-    arch: "x64",
-    label: "macOS · Intel",
-    detail: "Intel-based Macs · macOS 13 Ventura or newer",
-    file: `Kinetix-Studio-${RELEASE.version}-macos-x64.dmg`,
-    format: "dmg",
-    size: "189 MB",
-    sha256: "5a0d73e91c4b8f26d0a75e13b9c48f207d6a1e05c39b84f260ad7e13c59b4a80",
+    file: `Kinetix-Studio-${RELEASE.version}-portable.exe`,
+    format: "exe",
+    size: "223 MB",
+    sha256:
+      "a65eb60cdf131fcd0738492e76681fec6127424a5c4486d14d95c1cf50174ae6",
   },
   {
     id: "mac-universal",
     os: "macos",
     arch: "universal",
     label: "macOS · Universal",
-    detail: "Single binary · both architectures",
-    file: `Kinetix-Studio-${RELEASE.version}-macos-universal.dmg`,
+    detail: "Apple Silicon & Intel · macOS 13 or newer",
+    file: `Kinetix-Studio-${RELEASE.version}.dmg`,
     format: "dmg",
-    size: "331 MB",
-    sha256: "e18c4a70b5d29f36a0e71c84b3d5920f6a9e2c74d01b583f26ac9e07d4b13f5a",
+    size: "—",
+    sha256: "",
+    comingSoon: true,
   },
   {
     id: "linux-appimage",
@@ -92,10 +76,11 @@ export const ARTIFACTS: Artifact[] = [
     arch: "x64",
     label: "Linux AppImage",
     detail: "Any modern distro · glibc 2.31+",
-    file: `Kinetix-Studio-${RELEASE.version}-linux-x86_64.AppImage`,
+    file: `Kinetix-Studio-${RELEASE.version}.AppImage`,
     format: "AppImage",
-    size: "204 MB",
-    sha256: "7d2f9c14a0e63b58c1a7d024e9b53f60d8c1a47e92b05f36d7a1e804c39b52fd",
+    size: "244 MB",
+    sha256:
+      "3044c11b7c44110b5a0a017e5e2b1176c7a1f303709767ede72cce877ef51bda",
     recommended: true,
   },
   {
@@ -104,10 +89,11 @@ export const ARTIFACTS: Artifact[] = [
     arch: "x64",
     label: "Debian / Ubuntu",
     detail: "Ubuntu 22.04+ · Debian 12+",
-    file: `kinetix-studio-${RELEASE.version}-amd64.deb`,
+    file: `kinetix-studio_${RELEASE.version}_amd64.deb`,
     format: "deb",
-    size: "198 MB",
-    sha256: "2b6e05d94a17c83f50e26d71b9c3a08f4e5d7210a96c38f5b02d7e14a83c69f0",
+    size: "183 MB",
+    sha256:
+      "f49b0e36bfa6c5b350f9fa10055883466f59b08c341262a9188ff7aa110220a7",
   },
 ];
 
@@ -116,7 +102,7 @@ export const OS_META: Record<
   { name: string; short: string; note: string }
 > = {
   windows: { name: "Windows", short: "Win", note: "x86_64" },
-  macos: { name: "macOS", short: "Mac", note: "Apple Silicon & Intel" },
+  macos: { name: "macOS", short: "Mac", note: "coming soon" },
   linux: { name: "Linux", short: "Linux", note: "AppImage & .deb" },
 };
 
@@ -144,5 +130,11 @@ export function detectOs(userAgent: string, platform: string): OsKey {
 
 export function primaryArtifactFor(os: OsKey): Artifact {
   const list = artifactsFor(os);
-  return list.find((a) => a.recommended) ?? list[0];
+  const available = list.filter((a) => !a.comingSoon);
+  return (
+    available.find((a) => a.recommended) ??
+    available[0] ??
+    list.find((a) => a.recommended) ??
+    list[0]
+  );
 }

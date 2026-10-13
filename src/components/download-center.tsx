@@ -14,7 +14,7 @@ import {
 import {
   ARTIFACTS,
   OS_META,
-  RELEASE,
+  SHA256SUMS_URL,
   artifactsFor,
   downloadUrl,
   type OsKey,
@@ -39,18 +39,22 @@ function OsGlyph({ os, className }: { os: OsKey; className?: string }) {
   return <LinuxIcon className={className} />;
 }
 
+function fileFor(id: string): string {
+  return ARTIFACTS.find((a) => a.id === id)?.file ?? "";
+}
+
 const VERIFY: Record<OsKey, { label: string; command: string }> = {
   windows: {
     label: "PowerShell",
-    command: `Get-FileHash .\\Kinetix-Studio-${RELEASE.version}-windows-x64-setup.exe -Algorithm SHA256`,
+    command: `Get-FileHash .\\${fileFor("win-x64-setup")} -Algorithm SHA256`,
   },
   macos: {
     label: "Terminal",
-    command: `shasum -a 256 Kinetix-Studio-${RELEASE.version}-macos-arm64.dmg`,
+    command: `shasum -a 256 ${fileFor("mac-universal")}`,
   },
   linux: {
     label: "Terminal",
-    command: `sha256sum Kinetix-Studio-${RELEASE.version}-linux-x86_64.AppImage`,
+    command: `sha256sum ${fileFor("linux-appimage")}`,
   },
 };
 
@@ -161,6 +165,10 @@ export function DownloadCenter() {
                   <span className="rounded-full border border-flux/30 bg-flux/10 px-2.5 py-1 font-mono text-[9.5px] uppercase tracking-[0.14em] text-flux-bright">
                     Recommended
                   </span>
+                ) : a.comingSoon ? (
+                  <span className="rounded-full border border-hair px-2.5 py-1 font-mono text-[9.5px] uppercase tracking-[0.14em] text-mute">
+                    Coming soon
+                  </span>
                 ) : (
                   <span className="rounded-full border border-hair px-2.5 py-1 font-mono text-[9.5px] uppercase tracking-[0.14em] text-mute">
                     {a.arch}
@@ -191,23 +199,31 @@ export function DownloadCenter() {
 
               <div className="mt-3 flex items-center gap-2">
                 <code className="min-w-0 flex-1 truncate font-mono text-[11px] text-mute/80">
-                  {a.sha256}
+                  {a.sha256 || "—"}
                 </code>
-                <CopyButton value={a.sha256} label="checksum" />
+                {a.sha256 ? (
+                  <CopyButton value={a.sha256} label="checksum" />
+                ) : null}
               </div>
 
-              <a
-                href={downloadUrl(a)}
-                download
-                className={`mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-xl text-[14px] font-medium tracking-tight transition-all duration-200 ${
-                  a.recommended
-                    ? "text-white bg-[linear-gradient(180deg,#a855f7_0%,#6d28d9_100%)] shadow-[0_12px_34px_-14px_rgba(168,85,247,0.95)] hover:-translate-y-0.5"
-                    : "border border-hair-strong bg-white/[0.03] text-bright hover:-translate-y-0.5 hover:bg-white/[0.07]"
-                }`}
-              >
-                <Download className="size-4" />
-                Download .{a.format}
-              </a>
+              {a.comingSoon ? (
+                <span className="mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-hair-strong bg-white/[0.03] text-[14px] font-medium tracking-tight text-mute">
+                  Coming soon
+                </span>
+              ) : (
+                <a
+                  href={downloadUrl(a)}
+                  download
+                  className={`mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-xl text-[14px] font-medium tracking-tight transition-all duration-200 ${
+                    a.recommended
+                      ? "text-white bg-[linear-gradient(180deg,#a855f7_0%,#6d28d9_100%)] shadow-[0_12px_34px_-14px_rgba(168,85,247,0.95)] hover:-translate-y-0.5"
+                      : "border border-hair-strong bg-white/[0.03] text-bright hover:-translate-y-0.5 hover:bg-white/[0.07]"
+                  }`}
+                >
+                  <Download className="size-4" />
+                  Download .{a.format}
+                </a>
+              )}
             </article>
           ))}
         </motion.div>
@@ -220,8 +236,20 @@ export function DownloadCenter() {
             <h3 className="eyebrow text-mute">Verify your download</h3>
           </div>
           <p className="mt-4 text-[14.5px] leading-relaxed text-soft">
-            Every artifact is signed and published with a SHA-256 digest. Confirm the file
+            Every artifact is published with a SHA-256 digest. Confirm the file
             before you run it — if the hash does not match, re-download.
+          </p>
+          <p className="mt-2 text-[13.5px] text-mute">
+            All digests in{" "}
+            <a
+              href={SHA256SUMS_URL}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="text-soft underline decoration-hair-strong underline-offset-4 transition-colors hover:text-bright"
+            >
+              SHA256SUMS.txt
+            </a>
+            .
           </p>
           <div className="mt-5 space-y-3">
             {(["windows", "macos", "linux"] as OsKey[]).map((os) => (
@@ -253,7 +281,7 @@ export function DownloadCenter() {
               ["OS", "Windows 10/11 · macOS 13+ · glibc 2.31+"],
               ["CPU", "x86_64 or Apple Silicon · 4 cores"],
               ["RAM", "8 GB minimum · 16 GB recommended"],
-              ["GPU", "Vulkan 1.2 / Metal 3 / DX12"],
+              ["GPU", "H.264 encode (NVENC / VideoToolbox / VAAPI) or software"],
               ["Disk", "2.5 GB app · + cache for proxies"],
               ["Network", "None required · fully offline"],
             ].map(([k, v]) => (

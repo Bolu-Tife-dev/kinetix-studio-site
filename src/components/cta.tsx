@@ -5,7 +5,7 @@ import { ButtonLink } from "@/components/ui/button";
 const POINTS = [
   "MIT licensed, forever free",
   "Runs 100% offline",
-  "Full API + MCP access",
+  "Full local REST API",
 ];
 
 export function Cta() {

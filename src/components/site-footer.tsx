@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { RELEASE } from "@/lib/downloads";
+import { RELEASE, SOURCE_REPO } from "@/lib/downloads";
 import { KinetixMark, GithubIcon } from "@/components/icons";
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -20,16 +20,16 @@ const COLUMNS = [
       { href: "/docs", label: "API Overview" },
       { href: "/docs#quickstart", label: "Quickstart" },
       { href: "/docs#endpoints", label: "Endpoints" },
-      { href: "/docs#mcp", label: "MCP Server" },
+      { href: "/docs#render", label: "Render Jobs" },
     ],
   },
   {
     title: "Project",
     links: [
-      { href: "https://github.com/kinetix-studio/kinetix", label: "GitHub" },
-      { href: "https://github.com/kinetix-studio/kinetix/issues", label: "Issue Tracker" },
-      { href: "https://github.com/kinetix-studio/kinetix/blob/main/LICENSE", label: "MIT License" },
-      { href: "https://github.com/kinetix-studio/kinetix/releases", label: "Changelog" },
+      { href: SOURCE_REPO, label: "GitHub" },
+      { href: `${SOURCE_REPO}/issues`, label: "Issue Tracker" },
+      { href: `${SOURCE_REPO}/blob/main/LICENSE`, label: "MIT License" },
+      { href: `${SOURCE_REPO}/releases`, label: "Changelog" },
     ],
   },
 ];
@@ -57,7 +57,7 @@ export function SiteFooter() {
               v{RELEASE.version} · {RELEASE.codename}
             </span>
             <a
-              href="https://github.com/kinetix-studio/kinetix"
+              href={SOURCE_REPO}
               target="_blank"
               rel="noreferrer noopener"
               className="inline-flex items-center gap-2 rounded-full border border-hair bg-white/[0.03] px-3 py-1.5 font-mono text-[11px] text-soft transition-colors hover:border-hair-strong hover:text-bright"

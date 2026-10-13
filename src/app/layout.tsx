@@ -1,18 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://kinetix.studio"),
@@ -21,14 +12,14 @@ export const metadata: Metadata = {
     template: "%s · Kinetix Studio",
   },
   description:
-    "Automate high-impact edits with AI precision. Beat-synced AMV and gaming edits, a local API and MCP bridge for your AI agents, and zero subscription watermarks.",
+    "Automate high-impact edits with AI precision. Beat-synced AMV and gaming edits, a local REST API for your AI agents, and zero subscription watermarks.",
   keywords: [
     "video editor",
     "AMV editor",
     "AI video editing",
     "beat sync",
     "open source",
-    "MCP server",
+    "local REST API",
     "gaming edits",
   ],
   authors: [{ name: "Kinetix Studio contributors" }],
@@ -59,7 +50,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-void text-bright">
         <a

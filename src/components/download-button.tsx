@@ -56,6 +56,7 @@ export function DownloadButton({
 
   const detected = os;
   const primary = primaryArtifactFor(detected);
+  const primarySoon = Boolean(primary.comingSoon);
   const height = size === "lg" ? "h-[54px] px-6 text-[15px]" : "h-11 px-4 text-sm";
 
   function track(id: string) {
@@ -76,9 +77,11 @@ export function DownloadButton({
   return (
     <div className={`relative inline-flex items-stretch gap-2 ${className}`} data-os-menu>
       <motion.a
-        href={downloadUrl(primary)}
-        download
-        onClick={() => track(primary.id)}
+        href={primarySoon ? RELEASE.notesUrl : downloadUrl(primary)}
+        download={!primarySoon || undefined}
+        onClick={() => {
+          if (!primarySoon) track(primary.id);
+        }}
         whileHover={{ y: -2 }}
         whileTap={{ y: 0, scale: 0.985 }}
         transition={{ type: "spring", stiffness: 520, damping: 30 }}
@@ -97,6 +100,8 @@ export function DownloadButton({
             <OsIcon os={detected} className="size-[18px]" />
             {pending === primary.id ? (
               <span>Starting download…</span>
+            ) : primarySoon ? (
+              <span>{OS_META[detected].name} build — coming soon</span>
             ) : (
               <span>
                 Download for {OS_META[detected].name}
@@ -151,21 +156,33 @@ export function DownloadButton({
                       {OS_META[key].note}
                     </span>
                   </div>
-                  {items.map((a) => (
-                    <a
-                      key={a.id}
-                      role="menuitem"
-                      href={downloadUrl(a)}
-                      download
-                      onClick={() => track(a.id)}
-                      className="flex items-center justify-between gap-3 rounded-xl px-3 py-2 text-[13px] text-soft transition-colors hover:bg-volt/10 hover:text-bright"
-                    >
-                      <span className="truncate">{a.label}</span>
-                      <span className="shrink-0 font-mono text-[11px] uppercase text-mute">
-                        .{a.format} · {a.size}
+                  {items.map((a) =>
+                    a.comingSoon ? (
+                      <span
+                        key={a.id}
+                        className="flex items-center justify-between gap-3 rounded-xl px-3 py-2 text-[13px] text-mute/70"
+                      >
+                        <span className="truncate">{a.label}</span>
+                        <span className="shrink-0 font-mono text-[11px] uppercase text-mute/60">
+                          Coming soon
+                        </span>
                       </span>
-                    </a>
-                  ))}
+                    ) : (
+                      <a
+                        key={a.id}
+                        role="menuitem"
+                        href={downloadUrl(a)}
+                        download
+                        onClick={() => track(a.id)}
+                        className="flex items-center justify-between gap-3 rounded-xl px-3 py-2 text-[13px] text-soft transition-colors hover:bg-volt/10 hover:text-bright"
+                      >
+                        <span className="truncate">{a.label}</span>
+                        <span className="shrink-0 font-mono text-[11px] uppercase text-mute">
+                          .{a.format} · {a.size}
+                        </span>
+                      </a>
+                    ),
+                  )}
                 </div>
               );
             })}

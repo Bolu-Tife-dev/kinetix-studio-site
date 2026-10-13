@@ -15,12 +15,12 @@ import {
 import { CodeBlock, type Snippet } from "@/components/ui/code-block";
 import { DocsToc, type TocItem } from "@/components/docs-toc";
 import { ButtonLink } from "@/components/ui/button";
-import { RELEASE } from "@/lib/downloads";
+import { RELEASE, SOURCE_REPO } from "@/lib/downloads";
 
 export const metadata: Metadata = {
   title: "Agent API Documentation",
   description:
-    "Connect external AI agents and scripts to Kinetix Studio over its local REST API and Model Context Protocol server.",
+    "Connect external AI agents and scripts to Kinetix Studio over its local REST API on 127.0.0.1:4815.",
 };
 
 const TOC: TocItem[] = [
@@ -29,67 +29,57 @@ const TOC: TocItem[] = [
   { id: "auth", label: "Authentication" },
   { id: "endpoints", label: "Endpoint reference" },
   { id: "automation", label: "Automation examples" },
-  { id: "mcp", label: "MCP server" },
-  { id: "webhooks", label: "Webhooks & events" },
+  { id: "render", label: "Render jobs" },
   { id: "errors", label: "Errors" },
 ];
 
 const ENDPOINTS = [
   {
     method: "GET",
-    path: "/v1/health",
-    desc: "Bridge status, app version, GPU, and bound port.",
+    path: "/api/v1/health",
+    desc: "Bridge status, app name, and version. The only route that needs no key.",
   },
   {
     method: "GET",
-    path: "/v1/projects",
-    desc: "List open projects and their timeline summaries.",
+    path: "/api/v1/timeline",
+    desc: "Current project: assets, clips, aspect ratio, and duration.",
+  },
+  {
+    method: "PUT",
+    path: "/api/v1/timeline",
+    desc: "Replace the project name, aspect ratio, or the full clip list.",
   },
   {
     method: "POST",
-    path: "/v1/projects",
-    desc: "Create a project directly from local media paths.",
+    path: "/api/v1/timeline/build-sequence",
+    desc: "Cut source clips onto a beat-aligned timeline from beat timestamps.",
   },
   {
     method: "POST",
-    path: "/v1/analyze/bpm",
-    desc: "Reverse-engineer BPM, beat grid, and transient drops.",
+    path: "/api/v1/audio/extract-and-analyze",
+    desc: "Extract audio and detect tempo, beats, and onsets from a local file.",
   },
   {
     method: "POST",
-    path: "/v1/timeline/autocut",
-    desc: "Cut source clips onto a beat-aligned timeline.",
-  },
-  {
-    method: "PATCH",
-    path: "/v1/timeline/{id}",
-    desc: "Mutate clips, tracks, effects, and keyframes.",
+    path: "/api/v1/assets/import",
+    desc: "Register a local media file and probe its metadata with ffprobe.",
   },
   {
     method: "POST",
-    path: "/v1/reframe",
-    desc: "Smart auto-reframe to 9:16, 16:9, or a custom ratio.",
-  },
-  {
-    method: "POST",
-    path: "/v1/render/export",
-    desc: "Queue a watermark-free export with a named preset.",
+    path: "/api/v1/render",
+    desc: "Queue a watermark-free MP4 export of the current timeline.",
   },
   {
     method: "GET",
-    path: "/v1/jobs/{id}",
-    desc: "Poll render progress, stage, and output path.",
-  },
-  {
-    method: "GET",
-    path: "/v1/events",
-    desc: "Server-sent event stream for job lifecycle updates.",
+    path: "/api/v1/render/status",
+    desc: "Poll a render job: state, progress, and output path.",
   },
 ] as const;
 
 const METHOD_TONE: Record<string, string> = {
   GET: "text-flux-bright border-flux/30 bg-flux/10",
   POST: "text-volt-bright border-volt/30 bg-volt/10",
+  PUT: "text-signal border-signal/30 bg-signal/10",
   PATCH: "text-signal border-signal/30 bg-signal/10",
 };
 
@@ -98,30 +88,27 @@ const quickstart: Snippet[] = [
     id: "qs-shell",
     label: "Shell",
     lang: "bash",
-    code: `# 1. Launch Kinetix Studio — the local agent bridge starts automatically
-open -a "Kinetix Studio"              # macOS
-# Kinetix-Studio-Setup.exe           # Windows
-# ./Kinetix-Studio-2.4.1.AppImage    # Linux
+    code: `# 1. Launch Kinetix Studio — the local API starts with the app
+# Kinetix-Studio-Setup-1.0.0.exe      # Windows
+# ./Kinetix-Studio-1.0.0.AppImage     # Linux
 
-# 2. Confirm the bridge is listening on loopback
-curl -s http://127.0.0.1:4721/v1/health | jq
+# 2. Confirm the bridge is listening on loopback (no key required)
+curl -s http://127.0.0.1:4815/api/v1/health
 
-# 3. Mint a token for your agent: Settings → Agent Bridge → Authorize
-export KINETIX_TOKEN="kx_live_9f3a2c81d4b7e60a5f19"`,
+# 3. Copy your key from Settings → API, then export it
+export KINETIX_KEY="kx_..."`,
   },
   {
     id: "qs-response",
     label: "Response",
     lang: "json",
     code: `{
-  "status": "ok",
-  "version": "2.4.1",
-  "codename": "Spectra",
-  "port": 4721,
-  "bind": "127.0.0.1",
-  "gpu": { "name": "RTX 4070", "vram_mb": 12288, "accel": "cuda" },
-  "mcp": { "enabled": true, "transport": "stdio" },
-  "scopes": ["timeline.read", "timeline.write", "render"]
+  "ok": true,
+  "data": {
+    "status": "up",
+    "app": "kinetix-studio",
+    "version": "1.0.0"
+  }
 }`,
   },
 ];
@@ -131,22 +118,30 @@ const authSnippets: Snippet[] = [
     id: "auth-curl",
     label: "cURL",
     lang: "bash",
-    code: `curl http://127.0.0.1:4721/v1/projects \\
-  -H "Authorization: Bearer $KINETIX_TOKEN" \\
-  -H "Content-Type: application/json"`,
+    code: `# Either header style works
+curl http://127.0.0.1:4815/api/v1/timeline \\
+  -H "X-API-Key: $KINETIX_KEY"
+
+curl http://127.0.0.1:4815/api/v1/timeline \\
+  -H "Authorization: Bearer $KINETIX_KEY"
+
+# EventSource-friendly fallback: ?api_key=$KINETIX_KEY`,
   },
   {
-    id: "auth-ts",
-    label: "TypeScript",
-    lang: "typescript",
-    code: `import { Kinetix } from "@kinetix-studio/sdk";
+    id: "auth-py",
+    label: "Python",
+    lang: "python",
+    code: `import os
+import httpx
 
-const kinetix = new Kinetix({
-  baseUrl: "http://127.0.0.1:4721",
-  token: process.env.KINETIX_TOKEN!,
-});
+BASE = "http://127.0.0.1:4815/api/v1"
+HEADERS = {"X-API-Key": os.environ["KINETIX_KEY"]}
 
-const projects = await kinetix.projects.list();`,
+with httpx.Client(base_url=BASE, headers=HEADERS, timeout=30.0) as client:
+    health = client.get("/health").json()
+    timeline = client.get("/timeline").json()
+
+print(health["data"]["version"], timeline["data"]["durationSec"])`,
   },
 ];
 
@@ -155,29 +150,31 @@ const automation: Snippet[] = [
     id: "auto-curl",
     label: "cURL",
     lang: "bash",
-    code: `# Reverse-engineer the reference track, then cut a timeline to the grid
-curl -X POST http://127.0.0.1:4721/v1/analyze/bpm \\
-  -H "Authorization: Bearer $KINETIX_TOKEN" \\
+    code: `# 1. Detect tempo and the beat grid from a reference track
+curl -X POST http://127.0.0.1:4815/api/v1/audio/extract-and-analyze \\
+  -H "X-API-Key: $KINETIX_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{
-    "audio": "/footage/tracks/midnight_rush.wav",
-    "sensitivity": 0.82,
-    "detect_drops": true
-  }'
-# → { "bpm": 174.0, "beats": 128, "drops": [12.4, 27.8, 41.2] }
+  -d '{ "path": "C:/footage/tracks/midnight_rush.wav" }'
+# → { "ok": true, "data": { "tempoBpm": 174.0, "beatsMs": [0, 172, 344, ...] } }
 
-curl -X POST http://127.0.0.1:4721/v1/timeline/autocut \\
-  -H "Authorization: Bearer $KINETIX_TOKEN" \\
+# 2. Cut sources onto the beat grid (beats are millisecond timestamps)
+curl -X POST http://127.0.0.1:4815/api/v1/timeline/build-sequence \\
+  -H "X-API-Key: $KINETIX_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "project": "midnight_rush_amv",
-    "audio": "/footage/tracks/midnight_rush.wav",
-    "sources": ["/footage/amv/sakuga_01.mp4", "/footage/amv/sakuga_02.mp4"],
-    "grid": "1/16",
-    "max_shot_ms": 900,
-    "flash_on_downbeat": true,
-    "reframe": { "aspect": "9:16", "track_subject": true }
-  }'`,
+    "clips": [
+      { "path": "C:/footage/amv/sakuga_01.mp4" },
+      { "path": "C:/footage/amv/sakuga_02.mp4" }
+    ],
+    "beats": [0, 172, 344, 517, 689],
+    "tempoBpm": 174.0,
+    "aspectRatio": "9:16",
+    "transition": "flash",
+    "grouping": "bar",
+    "textEveryNBeats": 8,
+    "textTemplate": "DROP {n}"
+  }'
+# → { "ok": true, "data": { "clips": [...], "durationSec": 12.4 } }`,
   },
   {
     id: "auto-py",
@@ -186,154 +183,144 @@ curl -X POST http://127.0.0.1:4721/v1/timeline/autocut \\
     code: `import os
 import httpx
 
-BASE = "http://127.0.0.1:4721/v1"
+BASE = "http://127.0.0.1:4815/api/v1"
 HEADERS = {
-    "Authorization": f"Bearer {os.environ['KINETIX_TOKEN']}",
+    "X-API-Key": os.environ["KINETIX_KEY"],
     "Content-Type": "application/json",
 }
 
 
 def analyse_and_cut(sources: list[str], reference: str) -> dict:
     """Reverse-engineer a reference track, then cut to its beat grid."""
-    with httpx.Client(base_url=BASE, headers=HEADERS, timeout=30.0) as client:
+    with httpx.Client(base_url=BASE, headers=HEADERS, timeout=60.0) as client:
         analysis = client.post(
-            "/analyze/bpm",
-            json={"audio": reference, "sensitivity": 0.82, "detect_drops": True},
-        ).json()
+            "/audio/extract-and-analyze",
+            json={"path": reference},
+        ).json()["data"]
 
-        cut = client.post(
-            "/timeline/autocut",
+        project = client.post(
+            "/timeline/build-sequence",
             json={
-                "project": "midnight_rush_amv",
-                "audio": reference,
-                "sources": sources,
-                "grid": "1/16",
-                "max_shot_ms": 900,
-                "flash_on_downbeat": True,
-                "reframe": {"aspect": "9:16", "track_subject": True},
+                "clips": [{"path": p} for p in sources],
+                "beats": analysis["beatsMs"],
+                "tempoBpm": analysis["tempoBpm"],
+                "aspectRatio": "9:16",
+                "transition": "flash",
+                "grouping": "bar",
             },
-        ).json()
+        ).json()["data"]
 
-    return {"bpm": analysis["bpm"], "cuts": cut["cut_count"], "job": cut["id"]}
+    return {"bpm": analysis["tempoBpm"], "clips": len(project["clips"])}
 
 
 result = analyse_and_cut(
-    sources=["/footage/amv/sakuga_01.mp4", "/footage/amv/sakuga_02.mp4"],
-    reference="/footage/tracks/midnight_rush.wav",
+    sources=["C:/footage/amv/sakuga_01.mp4", "C:/footage/amv/sakuga_02.mp4"],
+    reference="C:/footage/tracks/midnight_rush.wav",
 )
 
-print(result)  # {'bpm': 174.0, 'cuts': 41, 'job': 'job_8fa21'}`,
+print(result)  # {'bpm': 174.0, 'clips': 42}`,
   },
   {
     id: "auto-ts",
     label: "TypeScript",
     lang: "typescript",
-    code: `import { Kinetix } from "@kinetix-studio/sdk";
+    code: `const BASE = "http://127.0.0.1:4815/api/v1";
+const headers = {
+  "X-API-Key": process.env.KINETIX_KEY!,
+  "Content-Type": "application/json",
+};
 
-const kinetix = new Kinetix({
-  baseUrl: "http://127.0.0.1:4721",
-  token: process.env.KINETIX_TOKEN!,
-});
+const analysis = await fetch(\`\${BASE}/audio/extract-and-analyze\`, {
+  method: "POST",
+  headers,
+  body: JSON.stringify({ path: "C:/footage/tracks/midnight_rush.wav" }),
+}).then((r) => r.json());
 
-const analysis = await kinetix.analyze.bpm({
-  audio: "/footage/tracks/midnight_rush.wav",
-  sensitivity: 0.82,
-  detectDrops: true,
-});
+const project = await fetch(\`\${BASE}/timeline/build-sequence\`, {
+  method: "POST",
+  headers,
+  body: JSON.stringify({
+    clips: [{ path: "C:/footage/amv/sakuga_01.mp4" }],
+    beats: analysis.data.beatsMs,
+    tempoBpm: analysis.data.tempoBpm,
+    aspectRatio: "9:16",
+    transition: "flash",
+  }),
+}).then((r) => r.json());
 
-const job = await kinetix.timeline.autoCut({
-  project: "midnight_rush_amv",
-  audio: "/footage/tracks/midnight_rush.wav",
-  sources: ["/footage/amv/sakuga_01.mp4", "/footage/amv/sakuga_02.mp4"],
-  grid: "1/16",
-  maxShotMs: 900,
-  flashOnDownbeat: true,
-  reframe: { aspect: "9:16", trackSubject: true },
-});
-
-const rendered = await kinetix.render.export({
-  jobId: job.id,
-  preset: "midnight_rush",
-  watermark: false,
-});
-
-console.log(\`\${analysis.bpm} BPM · \${job.cutCount} cuts → \${rendered.output}\`);`,
+console.log(
+  \`\${analysis.data.tempoBpm} BPM · \${project.data.clips.length} clips\`,
+);`,
   },
 ];
 
-const mcpSnippets: Snippet[] = [
+const renderSnippets: Snippet[] = [
   {
-    id: "mcp-config",
-    label: "claude_desktop_config.json",
+    id: "render-queue",
+    label: "Queue + poll",
+    lang: "bash",
+    code: `# Queue an export — output follows the project's aspect ratio and clips
+curl -X POST http://127.0.0.1:4815/api/v1/render \\
+  -H "X-API-Key: $KINETIX_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{ "outPath": "C:/renders/midnight_rush_9x16.mp4" }'
+# → { "ok": true, "data": { "jobId": "…", "statusUrl": "/api/v1/render/status?jobId=…" } }
+
+# Poll until the job leaves the queue and finishes
+JOB="<jobId>"
+while true; do
+  curl -s "http://127.0.0.1:4815/api/v1/render/status?jobId=$JOB" \\
+    -H "X-API-Key: $KINETIX_KEY" | jq -r '.data.state'
+  sleep 2
+done
+# queued → running → done | error`,
+  },
+  {
+    id: "render-status",
+    label: "Status response",
     lang: "json",
     code: `{
-  "mcpServers": {
-    "kinetix-studio": {
-      "command": "kinetix",
-      "args": ["mcp", "serve", "--transport", "stdio"],
-      "env": {
-        "KINETIX_TOKEN": "kx_live_9f3a2c81d4b7e60a5f19"
-      }
-    }
+  "ok": true,
+  "data": {
+    "jobId": "9f1b2c3d-…",
+    "state": "running",
+    "progress": 0.62,
+    "frames": 744,
+    "fps": 96.4,
+    "speed": "3.2x",
+    "startedAt": 1760332800000
   }
-}`,
-  },
-  {
-    id: "mcp-tools",
-    label: "Exposed tools",
-    lang: "bash",
-    code: `$ kinetix mcp tools
+}
 
-  analyze_bpm       Reverse-engineer BPM, beats, and drop positions
-  auto_cut          Cut sources onto a beat-aligned timeline
-  apply_preset      Apply a grade / aberration / flash preset by name
-  reframe           Rebuild the timeline for a target aspect ratio
-  export_render     Queue a watermark-free export
-  subscribe_events  Stream job progress over server-sent events`,
-  },
-];
-
-const webhookSnippets: Snippet[] = [
-  {
-    id: "wh-register",
-    label: "Register",
-    lang: "bash",
-    code: `curl -X POST http://127.0.0.1:4721/v1/webhooks \\
-  -H "Authorization: Bearer $KINETIX_TOKEN" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "url": "https://agent.example.com/hooks/kinetix",
-    "events": ["job.queued", "job.progress", "job.completed", "job.failed"],
-    "signing_secret": "whsec_7c21a9e04b"
-  }'`,
-  },
-  {
-    id: "wh-sse",
-    label: "SSE stream",
-    lang: "bash",
-    code: `curl -N http://127.0.0.1:4721/v1/events \\
-  -H "Authorization: Bearer $KINETIX_TOKEN"
-
-event: job.progress
-data: {"job_id":"job_8fa21","pct":62,"eta_s":11,"stage":"encoding"}
-
-event: job.completed
-data: {"job_id":"job_8fa21","output":"/renders/midnight_rush_9x16.mp4","watermark":false}`,
+// state: "queued" | "running" | "done" | "error"
+// done adds  "outPath": "C:/renders/midnight_rush_9x16.mp4"
+// error adds "error": "<ffmpeg message>"`,
   },
 ];
 
 const errorSnippets: Snippet[] = [
   {
-    id: "err-json",
-    label: "Error shape",
+    id: "err-auth",
+    label: "Runtime error",
+    lang: "json",
+    code: `HTTP/1.1 401 Unauthorized
+
+{
+  "ok": false,
+  "error": "Missing or invalid API key. Pass it via the X-API-Key header or Authorization: Bearer <key>."
+}`,
+  },
+  {
+    id: "err-validation",
+    label: "Validation error (400)",
     lang: "json",
     code: `{
+  "ok": false,
   "error": {
-    "type": "beat_grid_conflict",
-    "message": "Shot length 40ms is below the 1/16 grid resolution at 174 BPM.",
-    "param": "max_shot_ms",
-    "request_id": "req_0c71b9",
-    "docs": "https://kinetix.studio/docs#errors"
+    "formErrors": [],
+    "fieldErrors": {
+      "beats": ["Expected array, received undefined"]
+    }
   }
 }`,
   },
@@ -379,7 +366,7 @@ export default function DocsPage() {
               Ships with Studio {RELEASE.version}
             </span>
             <span className="inline-flex items-center gap-2 rounded-full border border-flux/30 bg-flux/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-flux-bright">
-              MCP compatible
+              Loopback only
             </span>
           </div>
 
@@ -388,8 +375,8 @@ export default function DocsPage() {
             <span className="text-neon">your own agents.</span>
           </h1>
           <p className="mt-5 max-w-2xl text-pretty text-[16px] leading-relaxed text-soft">
-            Kinetix Studio exposes a versioned REST API and a Model Context Protocol
-            server on <code className="font-mono text-flux-bright">127.0.0.1:4721</code>.
+            Kinetix Studio exposes a versioned REST API on{" "}
+            <code className="font-mono text-flux-bright">127.0.0.1:4815</code>.
             Nothing leaves your machine, nothing is rate-limited, and every operation the
             UI can perform is scriptable.
           </p>
@@ -418,9 +405,9 @@ export default function DocsPage() {
             />
             <p className="mt-4 text-[15px] leading-relaxed text-soft">
               The Agent Bridge is a loopback-only HTTP server that starts with the desktop
-              app. It mirrors the editor&apos;s internal command bus, so an agent can open
-              projects, analyse audio, mutate the timeline, apply presets, reframe, and
-              render — with the same undo stack and validation the UI uses.
+              app. It reads and writes the same project state the editor is watching, so
+              an agent can open media, analyse audio, build beat-synced sequences, and
+              render — and every change appears in the UI live.
             </p>
 
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
@@ -428,17 +415,17 @@ export default function DocsPage() {
                 {
                   icon: Server,
                   title: "Local REST",
-                  body: "Versioned JSON API on 127.0.0.1:4721. CORS-restricted, token-gated.",
+                  body: "Versioned JSON API on 127.0.0.1:4815. Bound to loopback, never exposed.",
                 },
                 {
                   icon: Radio,
-                  title: "MCP server",
-                  body: "First-class stdio transport with typed tools for every command.",
+                  title: "API-key auth",
+                  body: "One scoped key, sent as X-API-Key or Bearer. Rotate it from Settings.",
                 },
                 {
                   icon: Webhook,
-                  title: "Events",
-                  body: "Signed webhooks and an SSE stream for long-running render jobs.",
+                  title: "Job polling",
+                  body: "Queue exports, then poll state, progress, and the output path.",
                 },
               ].map(({ icon: Icon, title, body }) => (
                 <div key={title} className="card p-5">
@@ -458,7 +445,7 @@ export default function DocsPage() {
               title="Quickstart"
             />
             <p className="mt-4 text-[15px] leading-relaxed text-soft">
-              Launch the app, verify the bridge, and mint a scoped token. That is the whole
+              Launch the app, verify the bridge, and export your key. That is the whole
               setup — there is no cloud account, OAuth dance, or API key dashboard.
             </p>
             <div className="mt-6">
@@ -474,10 +461,13 @@ export default function DocsPage() {
               title="Authentication"
             />
             <p className="mt-4 text-[15px] leading-relaxed text-soft">
-              Every request requires a bearer token. Tokens are scoped, revocable from the
-              app, and stored in the OS keychain. The bridge refuses any request whose
-              <code className="mx-1 font-mono text-flux-bright">Host</code> header is not a
-              loopback address, which blocks drive-by browser calls from other sites.
+              Every route except{" "}
+              <code className="font-mono text-flux-bright">/api/v1/health</code> requires
+              the key. It is generated on first launch, stored in{" "}
+              <code className="mx-1 font-mono text-flux-bright">settings.json</code>, shown
+              and rotatable in Settings → API, and checked with a constant-time compare.
+              The server binds to <code className="mx-1 font-mono text-flux-bright">127.0.0.1</code>
+              , so other machines on your network cannot reach it at all.
             </p>
             <div className="mt-6">
               <CodeBlock snippets={authSnippets} />
@@ -492,9 +482,12 @@ export default function DocsPage() {
               title="Endpoint reference"
             />
             <p className="mt-4 text-[15px] leading-relaxed text-soft">
-              All routes are prefixed with <code className="font-mono text-flux-bright">/v1</code>.
-              Request and response bodies are JSON. Binary media is referenced by absolute
-              filesystem path, never uploaded.
+              All routes are prefixed with{" "}
+              <code className="font-mono text-flux-bright">/api/v1</code>. Request and
+              response bodies are JSON. Media is referenced by absolute filesystem path,
+              never uploaded — the one exception is{" "}
+              <code className="font-mono text-flux-bright">wavBase64</code> on the analyse
+              endpoint, which accepts an inline WAV of up to 50&nbsp;MB.
             </p>
 
             <div className="mt-6 overflow-hidden rounded-2xl border border-hair">
@@ -542,8 +535,10 @@ export default function DocsPage() {
               title="Automation examples"
             />
             <p className="mt-4 text-[15px] leading-relaxed text-soft">
-              A complete AMV pipeline in three calls: analyse the reference, cut to the
-              beat grid while auto-reframing to 9:16, then export without a watermark.
+              A complete AMV pipeline in two calls: analyse the reference track for its
+              tempo and beat grid, then cut your sources onto that grid while reframing
+              to 9:16. Paths are absolute and local — they are read by the desktop
+              machine, never uploaded.
             </p>
             <div className="mt-6">
               <CodeBlock snippets={automation} />
@@ -551,30 +546,19 @@ export default function DocsPage() {
           </section>
 
           <section>
-            <Heading id="mcp" icon={Radio} kicker="06 — Agents" title="MCP server" />
-            <p className="mt-4 text-[15px] leading-relaxed text-soft">
-              Register Studio as an MCP server and any MCP-capable client — Claude Desktop,
-              Cursor, or your own orchestrator — gains typed tools for the full editing
-              surface. The server speaks stdio and proxies to the local REST bridge.
-            </p>
-            <div className="mt-6">
-              <CodeBlock snippets={mcpSnippets} />
-            </div>
-          </section>
-
-          <section>
             <Heading
-              id="webhooks"
+              id="render"
               icon={Webhook}
-              kicker="07 — Long jobs"
-              title="Webhooks &amp; events"
+              kicker="06 — Long jobs"
+              title="Render jobs"
             />
             <p className="mt-4 text-[15px] leading-relaxed text-soft">
-              Renders can take minutes. Subscribe to signed webhooks or open the SSE stream
-              and let your agent do something else until the file lands.
+              Renders can take minutes. POST to queue one, then poll the status route —
+              jobs are serialized, so extra submissions wait their turn. There are no
+              webhooks or sockets; polling is the whole protocol.
             </p>
             <div className="mt-6">
-              <CodeBlock snippets={webhookSnippets} />
+              <CodeBlock snippets={renderSnippets} />
             </div>
           </section>
 
@@ -582,14 +566,16 @@ export default function DocsPage() {
             <Heading
               id="errors"
               icon={TriangleAlert}
-              kicker="08 — Failures"
+              kicker="07 — Failures"
               title="Errors"
             />
             <p className="mt-4 text-[15px] leading-relaxed text-soft">
-              Errors share one envelope. The{" "}
-              <code className="font-mono text-flux-bright">type</code> field is stable and
-              safe to branch on; the human-readable{" "}
-              <code className="font-mono text-flux-bright">message</code> is not.
+              Every failure wraps the same envelope:{" "}
+              <code className="font-mono text-flux-bright">{"{ ok: false, error }"}</code>.
+              For 401, 403, 404, and 422 responses{" "}
+              <code className="mx-1 font-mono text-flux-bright">error</code> is a
+              human-readable string. For 400 validation failures it is a flattened object
+              with per-field messages — branch on the HTTP status first.
             </p>
             <div className="mt-6">
               <CodeBlock snippets={errorSnippets} />
@@ -601,7 +587,7 @@ export default function DocsPage() {
                   Ready to wire up an agent?
                 </h3>
                 <p className="mt-1 text-[14px] text-soft">
-                  Download Studio, enable the Agent Bridge, and ship in minutes.
+                  Download Studio, copy your key from Settings, and ship in minutes.
                 </p>
               </div>
               <ButtonLink href="/downloads" size="md">
@@ -613,7 +599,7 @@ export default function DocsPage() {
             <p className="mt-6 text-[13px] text-mute">
               Something missing?{" "}
               <Link
-                href="https://github.com/kinetix-studio/kinetix/issues"
+                href={`${SOURCE_REPO}/issues`}
                 target="_blank"
                 rel="noreferrer noopener"
                 className="text-soft underline decoration-hair-strong underline-offset-4 transition-colors hover:text-bright"
