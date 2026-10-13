@@ -17,6 +17,8 @@ export type Artifact = {
   comingSoon?: boolean;
 };
 
+export const SITE_URL = "https://kinetix-studio-olive.vercel.app";
+
 export const SOURCE_REPO = "https://github.com/Bolu-Tife-dev/kinetix-studio";
 
 export const RELEASE = {

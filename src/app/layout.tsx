@@ -3,10 +3,11 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { SITE_URL } from "@/lib/downloads";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://kinetix.studio"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Kinetix Studio — AI-powered open-source video editor",
     template: "%s · Kinetix Studio",

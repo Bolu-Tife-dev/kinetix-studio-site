@@ -1,9 +1,10 @@
 import type { MetadataRoute } from "next";
+import { SITE_URL } from "@/lib/downloads";
 
 const LAST_MODIFIED = new Date();
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = "https://kinetix.studio";
+  const base = SITE_URL;
 
   return [
     { url: base, lastModified: LAST_MODIFIED, changeFrequency: "weekly", priority: 1 },
